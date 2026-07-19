@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Acesso VIP exclusivo. Conteúdo premium liberado imediatamente. Entre para o círculo restrito." />
+  <meta name="theme-color" content="#0a0612" />
+  <meta property="og:title" content="VIP ACCESS — Conteúdo Exclusivo" />
+  <meta property="og:description" content="O acesso que ninguém quer que você tenha. Entre agora." />
+  <meta property="og:type" content="website" />
+  <title>VIP ACCESS — O acesso que ninguém quer que você tenha</title>
+  <link rel="preload" as="image" href="img/hero.jpg" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="page-home">
+
+  <!-- ================================
+       HERO / PÁGINA INICIAL
+       Para editar textos, altere abaixo.
+       Para trocar a imagem principal: img/hero.jpg
+  ================================= -->
+  <main class="hero">
+    <div class="hero__bg" style="background-image:url('img/hero.jpg')"></div>
+    <div class="hero__overlay"></div>
+
+    <header class="topbar">
+      <!-- LOGO / NOME DA MARCA -->
+      <div class="brand">VIP<span>ACCESS</span></div>
+      <!-- CONTADOR ONLINE (simulado via JS) -->
+      <div class="online-badge">
+        <span class="dot"></span>
+        <span id="onlineCount">2847</span> online agora
+      </div>
+    </header>
+
+    <section class="hero__content">
+      <div class="badge-pill">🔥 ACESSO LIMITADO — VAGAS ABRINDO</div>
+
+      <!-- HEADLINE PRINCIPAL -->
+      <h1 class="headline">
+        O acesso que <span class="grad">ninguém</span> quer que você tenha.
+      </h1>
+
+      <!-- SUBTEXTO -->
+      <p class="subheadline">
+        Entre agora no círculo restrito. Milhares de homens já descobriram
+        o que está por trás. Você é o próximo.
+      </p>
+
+      <!-- BOTÃO CTA PRINCIPAL — redireciona para oferta.html -->
+      <a href="oferta.html" class="cta cta--xl pulse">
+        ENTRAR AGORA
+        <span class="cta__arrow">→</span>
+      </a>
+
+      <!-- BADGES DE CONFIANÇA -->
+      <ul class="trust">
+        <li>✓ Acesso Imediato</li>
+        <li>✓ Pagamento 100% Seguro</li>
+        <li>✓ Satisfação Garantida</li>
+      </ul>
+
+      <!-- PROVA SOCIAL -->
+      <div class="social-proof">
+        <div class="avatars">
+          <span></span><span></span><span></span><span></span><span></span>
+        </div>
+        <div class="social-proof__text">
+          <div class="stars">★★★★★ <b>4.9</b></div>
+          <div class="members"><b>18.4k+</b> membros verificados</div>
+        </div>
+      </div>
+
+      <!-- AVALIAÇÕES CURTAS -->
+      <div class="mini-reviews">
+        <blockquote>
+          "Melhor investimento que fiz. Vale cada centavo."
+          <cite>— Rafael M., SP</cite>
+        </blockquote>
+        <blockquote>
+          "Acesso liberado em menos de 1 minuto. Insano."
+          <cite>— Lucas P., RJ</cite>
+        </blockquote>
+      </div>
+    </section>
+
+    <footer class="foot">
+      © <span id="year"></span> VIP ACCESS — Todos os direitos reservados.
+    </footer>
+  </main>
+
+  <script src="script.js" defer></script>
+</body>
+</html>

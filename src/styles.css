@@ -1,0 +1,115 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-border: var(--border);
+  --color-neon-purple: var(--neon-purple);
+  --color-neon-pink: var(--neon-pink);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+}
+
+:root {
+  --radius: 1rem;
+  --background: oklch(0.08 0.015 285);
+  --foreground: oklch(0.98 0.005 285);
+  --surface: oklch(0.12 0.02 285);
+  --surface-2: oklch(0.16 0.025 285);
+  --card: oklch(0.12 0.02 285);
+  --card-foreground: oklch(0.98 0.005 285);
+  --primary: oklch(0.65 0.28 320);
+  --primary-foreground: oklch(0.98 0.005 285);
+  --secondary: oklch(0.55 0.25 295);
+  --secondary-foreground: oklch(0.98 0.005 285);
+  --muted: oklch(0.18 0.02 285);
+  --muted-foreground: oklch(0.7 0.02 285);
+  --accent: oklch(0.65 0.28 320);
+  --accent-foreground: oklch(0.98 0.005 285);
+  --border: oklch(1 0 0 / 10%);
+  --neon-purple: oklch(0.6 0.28 295);
+  --neon-pink: oklch(0.7 0.3 340);
+
+  --gradient-primary: linear-gradient(135deg, oklch(0.6 0.28 295), oklch(0.7 0.3 340));
+  --gradient-radial: radial-gradient(ellipse at center, oklch(0.6 0.28 295 / 0.35), transparent 70%);
+  --shadow-neon: 0 0 40px oklch(0.7 0.3 340 / 0.5), 0 0 80px oklch(0.6 0.28 295 / 0.3);
+  --shadow-glow: 0 10px 60px -10px oklch(0.7 0.3 340 / 0.5);
+}
+
+@layer base {
+  * { border-color: var(--color-border); }
+  html { scroll-behavior: smooth; }
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    background-image:
+      radial-gradient(ellipse 80% 50% at 50% -20%, oklch(0.6 0.28 295 / 0.25), transparent),
+      radial-gradient(ellipse 60% 50% at 80% 50%, oklch(0.7 0.3 340 / 0.12), transparent);
+    background-attachment: fixed;
+  }
+  h1, h2, h3, h4 { font-family: 'Space Grotesk', 'Inter', sans-serif; letter-spacing: -0.02em; }
+}
+
+@utility glass {
+  background: color-mix(in oklab, var(--surface) 60%, transparent);
+  backdrop-filter: blur(20px) saturate(160%);
+  border: 1px solid oklch(1 0 0 / 0.08);
+}
+
+@utility glass-strong {
+  background: color-mix(in oklab, var(--surface-2) 80%, transparent);
+  backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid oklch(1 0 0 / 0.12);
+}
+
+@utility gradient-text {
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@utility btn-neon {
+  background: var(--gradient-primary);
+  color: white;
+  box-shadow: var(--shadow-neon);
+  transition: transform .25s ease, box-shadow .25s ease, filter .25s ease;
+  &:hover {
+    transform: translateY(-2px) scale(1.02);
+    filter: brightness(1.1);
+    box-shadow: 0 0 60px oklch(0.7 0.3 340 / 0.7), 0 0 120px oklch(0.6 0.28 295 / 0.4);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px oklch(0.7 0.3 340 / 0.4); }
+  50% { box-shadow: 0 0 40px oklch(0.7 0.3 340 / 0.7), 0 0 80px oklch(0.6 0.28 295 / 0.4); }
+}
+@utility animate-pulse-glow { animation: pulse-glow 2.5s ease-in-out infinite; }
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
