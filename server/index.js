@@ -41,11 +41,10 @@ app.post("/api/create-pix", async (req, res) => {
     });
 
     const data = await response.json();
-
     if (!response.ok) {
+      console.error("Erro da MisticPay:", response.status, JSON.stringify(data));
       return res.status(response.status).json(data);
     }
-
     res.json(data);
   } catch (err) {
     console.error(err);

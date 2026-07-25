@@ -13,8 +13,11 @@ type PixData = {
   copyPaste: string;
 };
 
+type Plan = (typeof siteContent.sales.plans)[number];
+
 export function Checkout() {
-  const [step, setStep] = useState<"form" | "pix" | "paid">("form");
+  const [step, setStep] = useState<"plan" | "form" | "pix" | "paid">("plan");
+  const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
   const [name, setName] = useState("");
   const [document, setDocument] = useState("");
   const [loading, setLoading] = useState(false);
@@ -23,11 +26,20 @@ export function Checkout() {
   const [copied, setCopied] = useState(false);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const p = siteContent.sales.price;
-  const amount = 27.9; // ajuste conforme o valor real da mentoria
+  const plans = siteContent.sales.plans;
+
+  const handleSelectPlan = (plan: Plan) => {
+    setSelectedPlan(plan);
+    setStep("form");
+  };
 
   const handleCreatePix = async () => {
     setError(null);
+
+    if (!selectedPlan) {
+      setError("Selecione um plano antes de continuar.");
+      return;
+    }
 
     const cleanDoc = document.replace(/\D/g, "");
     if (!name.trim() || cleanDoc.length !== 11) {
@@ -43,8 +55,8 @@ export function Checkout() {
         body: JSON.stringify({
           payerName: name,
           payerDocument: cleanDoc,
-          amount,
-          description: "Acesso VIP Vitalício - Mentoria",
+          amount: selectedPlan.amount,
+          description: `${selectedPlan.name} - Mentoria`,
         }),
       });
       const json = await res.json();
@@ -123,21 +135,66 @@ export function Checkout() {
         >
           <div className="absolute inset-0 bg-gradient-to-br from-neon-purple/10 via-transparent to-neon-pink/10" />
           <div className="relative">
-            {step === "form" && (
+            {step === "plan" && (
               <>
                 <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-red-500/20 px-3 py-1 text-xs font-bold uppercase tracking-wider text-red-300">
                   <Zap className="h-3 w-3" /> Oferta por tempo limitado
                 </div>
-                <h3 className="mb-2 text-2xl sm:text-3xl font-black">Acesso VIP Vitalício</h3>
+                <h3 className="mb-2 text-2xl sm:text-3xl font-black">Escolha seu plano</h3>
+                <p className="mb-6 text-sm text-muted-foreground">Pagamento único • Sem mensalidade</p>
+
+                <div className="flex flex-col gap-4">
+                  {plans.map((plan) => (
+                    <button
+                      key={plan.id}
+                      onClick={() => handleSelectPlan(plan)}
+                      className="w-full rounded-2xl border border-white/10 bg-white/5 p-5 text-left transition hover:border-neon-purple hover:bg-white/10"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h4 className="text-lg font-black">{plan.name}</h4>
+                          <p className="text-xs text-muted-foreground">{plan.description}</p>
+                        </div>
+                        <div className="text-right">
+                          <span className="block text-xs text-muted-foreground line-through">
+                            {plan.original}
+                          </span>
+                          <span className="block text-2xl font-black gradient-text">
+                            {plan.current}
+                          </span>
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+
+            {step === "form" && selectedPlan && (
+              <>
+                <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-red-500/20 px-3 py-1 text-xs font-bold uppercase tracking-wider text-red-300">
+                  <Zap className="h-3 w-3" /> Oferta por tempo limitado
+                </div>
+                <h3 className="mb-2 text-2xl sm:text-3xl font-black">{selectedPlan.name}</h3>
                 <p className="mb-6 text-sm text-muted-foreground">Pagamento único • Sem mensalidade</p>
 
                 <div className="mb-6 flex flex-col items-center">
-                  <span className="text-sm text-muted-foreground line-through">De {p.original}</span>
+                  <span className="text-sm text-muted-foreground line-through">
+                    De {selectedPlan.original}
+                  </span>
                   <div className="flex items-baseline gap-2">
-                    <span className="text-5xl sm:text-6xl font-black gradient-text">{p.current}</span>
+                    <span className="text-5xl sm:text-6xl font-black gradient-text">
+                      {selectedPlan.current}
+                    </span>
                   </div>
-                  <span className="mt-1 text-sm text-muted-foreground">{p.installments}</span>
                 </div>
+
+                <button
+                  onClick={() => setStep("plan")}
+                  className="mb-4 text-xs text-muted-foreground underline hover:text-white"
+                >
+                  Trocar plano
+                </button>
 
                 <div className="mb-4 flex flex-col gap-3 text-left">
                   <input
@@ -170,11 +227,11 @@ export function Checkout() {
               </>
             )}
 
-            {step === "pix" && pix && (
+            {step === "pix" && pix && selectedPlan && (
               <>
                 <h3 className="mb-2 text-2xl font-black">Escaneie o QR Code para pagar</h3>
                 <p className="mb-6 text-sm text-muted-foreground">
-                  Valor: <strong className="gradient-text">R$ {amount.toFixed(2)}</strong>
+                  Valor: <strong className="gradient-text">R$ {selectedPlan.amount.toFixed(2)}</strong>
                 </p>
 
                 <img

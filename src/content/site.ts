@@ -1,4 +1,4 @@
-// Central content configuration - edit everything here
+﻿// Central content configuration - edit everything here
 export const siteContent = {
   brand: {
     name: "VIP ACCESS",
@@ -6,7 +6,7 @@ export const siteContent = {
   },
 
   home: {
-    headline: "SEU CONTEUDO JA DISPONÍVEL",
+    headline: "SEU CONTEUDO JÁ DISPONÍVEL",
 
     subheadline: `
 
@@ -37,11 +37,24 @@ export const siteContent = {
 
     ctaPrimary: "DESBLOQUEAR AGORA",
 
-    price: {
-      original: "R$ 197,00",
-      current: "R$ 27,90",
-      installments: "ou 3x de R$ 9,97",
-    },
+    plans: [
+      {
+        id: "basico",
+        name: "VIP Básico",
+        amount: 9.99,
+        original: "R$ 47,00",
+        current: "R$ 9,99",
+        description: "Acesso ao conteúdo básico",
+      },
+      {
+        id: "vip",
+        name: "VIP Completo",
+        amount: 27.0,
+        original: "R$ 197,00",
+        current: "R$ 27,00",
+        description: "Acesso VIP vitalício completo",
+      },
+    ],
 
     floatingCta: "Desbloquear Acesso VIP",
   },
