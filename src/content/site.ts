@@ -37,7 +37,7 @@ export const siteContent = {
 
     ctaPrimary: "DESBLOQUEAR AGORA",
 
-    plans: [
+   plans: [
       {
         id: "basico",
         name: "VIP Básico",
@@ -53,6 +53,14 @@ export const siteContent = {
         original: "R$ 197,00",
         current: "R$ 27,00",
         description: "Acesso VIP vitalício completo",
+      },
+      {
+        id: "master",
+        name: "VIP Master",
+        amount: 99.9,
+        original: "R$ 397,00",
+        current: "R$ 99,90",
+        description: "Acesso VIP Master completo",
       },
     ],
 
