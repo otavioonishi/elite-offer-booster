@@ -51,12 +51,12 @@ function Home() {
         transition={{ duration: 0.8 }}
         className="relative mb-8 w-full max-w-md aspect-[9/16]"
       >
-        <div className="absolute inset-0 rounded-[2rem] bg-gradient-to-br from-neon-purple to-neon-pink blur-3xl opacity-40" />
         <img
           src={heroAsset.url}
           alt="Preview exclusivo"
           className="w-full h-full object-cover rounded-[2rem] shadow-2xl pointer-events-none select-none"
         />
+
       </motion.div>
 
       {/* Headline */}
