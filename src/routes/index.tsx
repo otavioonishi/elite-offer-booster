@@ -4,6 +4,7 @@ import { ArrowRight } from "lucide-react";
 import { siteContent } from "@/content/site";
 import { SocialProof } from "@/components/SocialProof";
 import { NeonButton } from "@/components/ui/NeonButton";
+import heroAsset from "@/assets/hero.jpg.asset.json";
 
 export const Route = createFileRoute("/")({
   component: Home,
