@@ -30,7 +30,7 @@ function Home() {
     <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-4 py-10">
       {/* ambient background */}
       <div className="pointer-events-none absolute inset-0 -z-10">
-        <div className="absolute left-1/2 top-1/2 h-[80vh] w-[80vh] -translate-x-1/2 -translate-y-1/2 rounded-full bg-neon-purple/20 blur-[120px]" />
+        <div className="absolute left-1/2 top-1/2 h-[45vh] w-[45vh] -translate-x-1/2 -translate-y-1/2 rounded-full bg-neon-purple/10 blur-[140px]" />
         <div className="absolute bottom-0 right-0 h-[50vh] w-[50vh] rounded-full bg-neon-pink/15 blur-[120px]" />
       </div>
 
