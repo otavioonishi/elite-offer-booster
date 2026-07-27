@@ -4,6 +4,7 @@ import { ArrowRight } from "lucide-react";
 import { siteContent } from "@/content/site";
 import { SocialProof } from "@/components/SocialProof";
 import { NeonButton } from "@/components/ui/NeonButton";
+import heroAsset from "@/assets/hero.jpg.asset.json";
 
 export const Route = createFileRoute("/")({
   component: Home,
@@ -43,7 +44,7 @@ function Home() {
         {siteContent.brand.tagline}
       </motion.div>
 
-      {/* Hero Video */}
+      {/* Hero Image */}
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -51,18 +52,11 @@ function Home() {
         className="relative mb-8 w-full max-w-md aspect-[9/16]"
       >
         <div className="absolute inset-0 rounded-[2rem] bg-gradient-to-br from-neon-purple to-neon-pink blur-3xl opacity-40" />
-        <video
-  autoPlay
-  muted
-  loop
-  playsInline
-  preload="auto"
-  disablePictureInPicture
-  controlsList="nodownload noplaybackrate nofullscreen"
-  className="w-full h-full object-cover rounded-[2rem] shadow-2xl pointer-events-none select-none"
->
-  <source src="/hero.mp4" type="video/mp4" />
-</video>
+        <img
+          src={heroAsset.url}
+          alt="Preview exclusivo"
+          className="w-full h-full object-cover rounded-[2rem] shadow-2xl pointer-events-none select-none"
+        />
       </motion.div>
 
       {/* Headline */}

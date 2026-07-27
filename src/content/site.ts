@@ -16,6 +16,8 @@ export const siteContent = {
 
   `,
 
+    cta: "DESBLOQUEAR AGORA",
+
     stats: {
       online: 2847,
       members: "18.4k",
@@ -37,15 +39,7 @@ export const siteContent = {
 
     ctaPrimary: "DESBLOQUEAR AGORA",
 
-   plans: [
-      {
-        id: "basico",
-        name: "VIP Básico",
-        amount: 9.99,
-        original: "R$ 47,00",
-        current: "R$ 9,99",
-        description: "Acesso ao conteúdo básico",
-      },
+    plans: [
       {
         id: "vip",
         name: "VIP Completo",
