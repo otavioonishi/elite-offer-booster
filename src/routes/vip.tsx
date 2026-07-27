@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { Lock, Sparkles } from "lucide-react";
 import { siteContent } from "@/content/site";
-import { LockedGallery } from "@/components/LockedGallery";
+import { LockedVideo } from "@/components/LockedVideo";
 import { BenefitCards } from "@/components/BenefitCards";
 import { WhyChoose } from "@/components/WhyChoose";
 import { Testimonials } from "@/components/Testimonials";
@@ -76,9 +76,9 @@ function VipPage() {
         <div className="mx-auto max-w-5xl">
           <div className="mb-8 text-center">
             <h2 className="mb-2 text-2xl sm:text-4xl font-black">Prévia do acervo</h2>
-            <p className="text-sm text-muted-foreground">Toque em qualquer imagem para desbloquear</p>
+            <p className="text-sm text-muted-foreground">Toque no vídeo para desbloquear</p>
           </div>
-          <LockedGallery onUnlock={scrollToCheckout} />
+          <LockedVideo onUnlock={scrollToCheckout} />
         </div>
       </section>
 
