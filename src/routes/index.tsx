@@ -4,7 +4,7 @@ import { ArrowRight } from "lucide-react";
 import { siteContent } from "@/content/site";
 import { SocialProof } from "@/components/SocialProof";
 import { NeonButton } from "@/components/ui/NeonButton";
-import heroAsset from "@/assets/hero.jpg.asset.json";
+import heroImg from "@/assets/hero.jpg";
 
 export const Route = createFileRoute("/")({
   component: Home,
@@ -52,7 +52,7 @@ function Home() {
         className="relative mb-8 w-full max-w-md aspect-[9/16]"
       >
         <img
-          src={heroAsset.url}
+          src={heroImg}
           alt="Preview exclusivo"
           className="w-full h-full object-cover rounded-[2rem] shadow-2xl pointer-events-none select-none"
         />
