@@ -6,6 +6,8 @@ import { siteContent } from "@/content/site";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 const TELEGRAM_LINK = "https://t.me/+X7bYcV9ObZ85YmFh";
+const WHATSAPP_LINK = "https://chat.whatsapp.com/Bu4dargEdHZ71suoIKZclT";
+
 
 type PixData = {
   transactionId: string;
@@ -29,9 +31,14 @@ export function Checkout() {
   const plans = siteContent.sales.plans;
 
   const handleSelectPlan = (plan: Plan) => {
+    if (plan.amount === 0) {
+      window.location.href = WHATSAPP_LINK;
+      return;
+    }
     setSelectedPlan(plan);
     setStep("form");
   };
+
 
   const handleCreatePix = async () => {
     setError(null);
