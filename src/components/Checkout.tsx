@@ -29,9 +29,14 @@ export function Checkout() {
   const plans = siteContent.sales.plans;
 
   const handleSelectPlan = (plan: Plan) => {
+    if (plan.amount === 0) {
+      window.location.href = WHATSAPP_LINK;
+      return;
+    }
     setSelectedPlan(plan);
     setStep("form");
   };
+
 
   const handleCreatePix = async () => {
     setError(null);
