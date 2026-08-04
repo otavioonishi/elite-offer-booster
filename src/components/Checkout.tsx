@@ -6,6 +6,8 @@ import { siteContent } from "@/content/site";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 const TELEGRAM_LINK = "https://t.me/+X7bYcV9ObZ85YmFh";
+const WHATSAPP_LINK = "https://chat.whatsapp.com/Bu4dargEdHZ71suoIKZclT";
+
 
 type PixData = {
   transactionId: string;
