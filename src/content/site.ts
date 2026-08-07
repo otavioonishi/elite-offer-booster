@@ -49,19 +49,11 @@ export const siteContent = {
         description: "Entre no grupo gratuito do WhatsApp",
       },
       {
-        id: "basico",
-        name: "Básico",
-        amount: 17.0,
-        original: "R$ 97,00",
-        current: "R$ 17,00",
-        description: "Acesso básico ao conteúdo",
-      },
-      {
         id: "vip",
         name: "Normal",
-        amount: 27.0,
+        amount: 24.99,
         original: "R$ 197,00",
-        current: "R$ 27,00",
+        current: "R$ 24,99",
         description: "Acesso VIP completo",
       },
       {
