@@ -56,8 +56,8 @@ function createAdminToken() {
 }
 
 function isValidAdminToken(token?: string) {
-  const secret = process.env["SESSION_SECRET"];
-  if (!secret || !token) return false;
+  const secret = tokenSecret();
+  if (!token) return false;
   const [expiresAtText, signature] = token.split(".");
   const expiresAt = Number(expiresAtText);
   if (!expiresAtText || !signature || !Number.isFinite(expiresAt) || expiresAt < Date.now()) return false;
