@@ -32,6 +32,7 @@ export const Route = createFileRoute("/admin")({
 
 type Video = { id: string; title: string; url: string };
 const MAX_FILE_SIZE = 200 * 1024 * 1024;
+const ADMIN_TOKEN_KEY = "conteudo-admin-token";
 
 function AdminPage() {
   const login = useServerFn(unlockAdmin);
@@ -53,11 +54,14 @@ function AdminPage() {
   const [sending, setSending] = useState(false);
   const [loadingVideos, setLoadingVideos] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [adminToken, setAdminToken] = useState("");
 
 
   const handleAuthError = (err: unknown, fallback: string) => {
     const message = err instanceof Error ? err.message : fallback;
     if (message.toLowerCase().includes("autorizado")) {
+      window.sessionStorage.removeItem(ADMIN_TOKEN_KEY);
+      setAdminToken("");
       setIsAdmin(false);
       setError("Sua sessão expirou. Entre novamente.");
       return "Sua sessão expirou. Entre novamente.";
@@ -77,7 +81,9 @@ function AdminPage() {
   };
 
   useEffect(() => {
-    state({})
+    const savedToken = window.sessionStorage.getItem(ADMIN_TOKEN_KEY) ?? "";
+    setAdminToken(savedToken);
+    state({ data: { adminToken: savedToken || undefined } })
       .then(async (s) => {
         setIsAdmin(s.admin);
         if (s.admin) await refresh();
@@ -93,6 +99,8 @@ function AdminPage() {
       setSending(true);
       const res = await login({ data: { password } });
       if (!res.ok) return setError("Senha incorreta.");
+      window.sessionStorage.setItem(ADMIN_TOKEN_KEY, res.adminToken);
+      setAdminToken(res.adminToken);
       setIsAdmin(true);
       setPassword("");
       setError("");
@@ -115,7 +123,7 @@ function AdminPage() {
       return setStatus("O vídeo deve ter no máximo 200 MB.");
     }
     if (uploadedPath) {
-      try { await discard({ data: { path: uploadedPath } }); } catch { /* arquivo temporário expira sem publicação */ }
+      try { await discard({ data: { path: uploadedPath, adminToken } }); } catch { /* arquivo temporário expira sem publicação */ }
     }
     setFile(selected);
     setUploadedPath(null);
@@ -127,7 +135,9 @@ function AdminPage() {
     try {
       setSending(true);
       setStatus("Enviando arquivo…");
-      const { path, token } = await makeUrl({ data: { filename: file.name } });
+      const prepared = await makeUrl({ data: { filename: file.name, adminToken } });
+      if (!prepared.ok) throw new Error("Não autorizado");
+      const { path, token } = prepared;
       const { error: upErr } = await supabase.storage
         .from("conteudo")
         .uploadToSignedUrl(path, token, file);
@@ -146,7 +156,8 @@ function AdminPage() {
     if (!title.trim()) return setStatus("Escreva um título.");
     try {
       setSending(true);
-      await save({ data: { title: title.trim(), path: uploadedPath } });
+      const result = await save({ data: { title: title.trim(), path: uploadedPath, adminToken } });
+      if (!result.ok) throw new Error("Não autorizado");
       setTitle("");
       setFile(null);
       setUploadedPath(null);
@@ -164,7 +175,8 @@ function AdminPage() {
     try {
       setDeletingId(video.id);
       setStatus("");
-      await remove({ data: { id: video.id } });
+      const result = await remove({ data: { id: video.id, adminToken } });
+      if (!result.ok) throw new Error("Não autorizado");
       setVideos((current) => current.filter((item) => item.id !== video.id));
       setStatus("Vídeo excluído.");
     } catch (err) {
