@@ -79,7 +79,7 @@ function Home() {
         transition={{ delay: 0.5 }}
         className="mb-6"
       >
-        <NeonButton size="xl" onClick={() => navigate({ to: "/vip" })}>
+        <NeonButton size="xl" onClick={() => navigate({ to: "/area" })}>
           {c.cta} <ArrowRight className="h-5 w-5" />
         </NeonButton>
       </motion.div>
