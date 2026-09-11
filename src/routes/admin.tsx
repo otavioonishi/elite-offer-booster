@@ -66,25 +66,43 @@ function AdminPage() {
     } else setError("Senha incorreta");
   }
 
-  async function onUpload(e: React.FormEvent) {
-    e.preventDefault();
-    if (!file || !title.trim()) return;
+  async function onSendFile() {
+    if (!file) return setStatus("Escolha um arquivo primeiro.");
     try {
-      setStatus("Enviando vídeo…");
+      setSending(true);
+      setStatus("Enviando arquivo…");
       const { path, token } = await makeUrl({ data: { filename: file.name } });
       const { error: upErr } = await supabase.storage
         .from("conteudo")
         .uploadToSignedUrl(path, token, file);
       if (upErr) throw new Error(upErr.message);
-      await save({ data: { title: title.trim(), path } });
-      setTitle("");
-      setFile(null);
-      setStatus("Vídeo publicado!");
-      await refresh();
+      setUploadedPath(path);
+      setStatus("Arquivo enviado! Agora clique em Publicar vídeo.");
     } catch (err) {
       setStatus(err instanceof Error ? err.message : "Erro no envio");
+    } finally {
+      setSending(false);
     }
   }
+
+  async function onPublish() {
+    if (!uploadedPath) return setStatus("Envie o arquivo antes de publicar.");
+    if (!title.trim()) return setStatus("Escreva um título.");
+    try {
+      setSending(true);
+      await save({ data: { title: title.trim(), path: uploadedPath } });
+      setTitle("");
+      setFile(null);
+      setUploadedPath(null);
+      setStatus("Vídeo publicado na área do cliente!");
+      await refresh();
+    } catch (err) {
+      setStatus(err instanceof Error ? err.message : "Erro ao publicar");
+    } finally {
+      setSending(false);
+    }
+  }
+
 
   if (!isAdmin) {
     return (
