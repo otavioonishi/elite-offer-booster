@@ -45,6 +45,9 @@ function AdminPage() {
   const [title, setTitle] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [status, setStatus] = useState("");
+  const [uploadedPath, setUploadedPath] = useState<string | null>(null);
+  const [sending, setSending] = useState(false);
+
 
   const refresh = async () => setVideos((await load({})).videos);
 
