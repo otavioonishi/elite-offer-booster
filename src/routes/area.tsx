@@ -24,17 +24,22 @@ function AreaPage() {
   const load = useServerFn(listVideos);
   const [videos, setVideos] = useState<Video[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    load({}).then((res) => {
-      setVideos(res.videos);
-      setLoading(false);
-    });
+    load({})
+      .then((res) => setVideos(res.videos))
+      .catch(() => setError("Não foi possível carregar os vídeos agora."))
+      .finally(() => setLoading(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (loading) {
     return <main className="flex min-h-screen items-center justify-center text-muted-foreground">Carregando…</main>;
+  }
+
+  if (error) {
+    return <main className="flex min-h-screen items-center justify-center px-4 text-center text-muted-foreground">{error}</main>;
   }
 
   return (
