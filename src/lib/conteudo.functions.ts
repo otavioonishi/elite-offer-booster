@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { useSession } from "@tanstack/react-start/server";
-import { createHash, timingSafeEqual } from "node:crypto";
+import { createHash, createHmac, timingSafeEqual } from "node:crypto";
 import { z } from "zod";
 
 type GateSession = { unlocked?: boolean; admin?: boolean };
@@ -8,15 +8,19 @@ type GateSession = { unlocked?: boolean; admin?: boolean };
 const passwordSchema = z.object({ password: z.string().min(1).max(200) });
 const filenameSchema = z.object({
   filename: z.string().trim().min(1).max(180),
+  adminToken: z.string().min(1).max(300),
 });
 const videoSchema = z.object({
   title: z.string().trim().min(1).max(120),
   path: z.string().regex(/^[a-f0-9-]{36}-[a-zA-Z0-9._-]{1,180}$/),
+  adminToken: z.string().min(1).max(300),
 });
 const pathSchema = z.object({
   path: z.string().regex(/^[a-f0-9-]{36}-[a-zA-Z0-9._-]{1,180}$/),
+  adminToken: z.string().min(1).max(300),
 });
-const idSchema = z.object({ id: z.string().uuid() });
+const idSchema = z.object({ id: z.string().uuid(), adminToken: z.string().min(1).max(300) });
+const sessionStateSchema = z.object({ adminToken: z.string().max(300).optional() });
 
 function sessionConfig() {
   return {
@@ -38,6 +42,26 @@ function matches(input: string, expected: string) {
   return timingSafeEqual(a, b);
 }
 
+function createAdminToken() {
+  const secret = process.env["SESSION_SECRET"];
+  if (!secret) throw new Error("Configuração administrativa ausente");
+  const expiresAt = Date.now() + 1000 * 60 * 60 * 24 * 30;
+  const signature = createHmac("sha256", secret).update(String(expiresAt)).digest("hex");
+  return `${expiresAt}.${signature}`;
+}
+
+function isValidAdminToken(token?: string) {
+  const secret = process.env["SESSION_SECRET"];
+  if (!secret || !token) return false;
+  const [expiresAtText, signature] = token.split(".");
+  const expiresAt = Number(expiresAtText);
+  if (!expiresAtText || !signature || !Number.isFinite(expiresAt) || expiresAt < Date.now()) return false;
+  const expected = createHmac("sha256", secret).update(expiresAtText).digest("hex");
+  const givenBuffer = Buffer.from(signature, "hex");
+  const expectedBuffer = Buffer.from(expected, "hex");
+  return givenBuffer.length === expectedBuffer.length && timingSafeEqual(givenBuffer, expectedBuffer);
+}
+
 export const unlockArea = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => passwordSchema.parse(data))
   .handler(async ({ data }) => {
@@ -53,15 +77,12 @@ export const unlockAdmin = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const expected = process.env["ADMIN_PASSWORD"];
     if (!expected || !matches(data.password, expected)) return { ok: false as const };
-    const session = await useSession<GateSession>(sessionConfig());
-    await session.update({ ...session.data, admin: true, unlocked: true });
-    return { ok: true as const };
+    return { ok: true as const, adminToken: createAdminToken() };
   });
 
-export const getSessionState = createServerFn({ method: "GET" }).handler(async () => {
-  const session = await useSession<GateSession>(sessionConfig());
-  return { unlocked: !!session.data.unlocked, admin: !!session.data.admin };
-});
+export const getSessionState = createServerFn({ method: "POST" })
+  .inputValidator((data: unknown) => sessionStateSchema.parse(data))
+  .handler(async ({ data }) => ({ unlocked: true, admin: isValidAdminToken(data.adminToken) }));
 
 export const listVideos = createServerFn({ method: "GET" }).handler(async () => {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -87,8 +108,7 @@ export const listVideos = createServerFn({ method: "GET" }).handler(async () => 
 export const createUploadUrl = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => filenameSchema.parse(data))
   .handler(async ({ data }) => {
-    const session = await useSession<GateSession>(sessionConfig());
-    if (!session.data.admin) throw new Error("Não autorizado");
+    if (!isValidAdminToken(data.adminToken)) return { ok: false as const, error: "unauthorized" as const };
 
     const safe = data.filename.replace(/[^a-zA-Z0-9._-]/g, "_").slice(-180);
     const path = `${crypto.randomUUID()}-${safe}`;
@@ -97,14 +117,13 @@ export const createUploadUrl = createServerFn({ method: "POST" })
       .from("conteudo")
       .createSignedUploadUrl(path);
     if (error || !signed) throw new Error("Falha ao preparar o envio");
-    return { path, token: signed.token };
+    return { ok: true as const, path, token: signed.token };
   });
 
 export const saveVideo = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => videoSchema.parse(data))
   .handler(async ({ data }) => {
-    const session = await useSession<GateSession>(sessionConfig());
-    if (!session.data.admin) throw new Error("Não autorizado");
+    if (!isValidAdminToken(data.adminToken)) return { ok: false as const, error: "unauthorized" as const };
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await supabaseAdmin
       .from("videos")
@@ -119,8 +138,7 @@ export const saveVideo = createServerFn({ method: "POST" })
 export const discardUpload = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => pathSchema.parse(data))
   .handler(async ({ data }) => {
-    const session = await useSession<GateSession>(sessionConfig());
-    if (!session.data.admin) throw new Error("Não autorizado");
+    if (!isValidAdminToken(data.adminToken)) return { ok: false as const, error: "unauthorized" as const };
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await supabaseAdmin.storage.from("conteudo").remove([data.path]);
     if (error) throw new Error("Não foi possível limpar o envio anterior");
@@ -130,8 +148,7 @@ export const discardUpload = createServerFn({ method: "POST" })
 export const deleteVideo = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => idSchema.parse(data))
   .handler(async ({ data }) => {
-    const session = await useSession<GateSession>(sessionConfig());
-    if (!session.data.admin) throw new Error("Não autorizado");
+    if (!isValidAdminToken(data.adminToken)) return { ok: false as const, error: "unauthorized" as const };
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: row, error: findError } = await supabaseAdmin
       .from("videos")
