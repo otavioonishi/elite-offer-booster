@@ -45,10 +45,8 @@ export const getSessionState = createServerFn({ method: "GET" }).handler(async (
 });
 
 export const listVideos = createServerFn({ method: "GET" }).handler(async () => {
-  const session = await useSession<GateSession>(sessionConfig());
-  if (!session.data.unlocked) return { locked: true as const, videos: [] };
-
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
   const { data } = await supabaseAdmin
     .from("videos")
     .select("id, title, storage_path, created_at")
