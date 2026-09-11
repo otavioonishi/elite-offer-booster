@@ -24,7 +24,7 @@ const sessionStateSchema = z.object({ adminToken: z.string().max(300).optional()
 
 function sessionConfig() {
   return {
-    password: process.env["SESSION_SECRET"]!,
+    password: tokenSecret(),
     name: "vip-gate",
     maxAge: 60 * 60 * 24 * 30,
     cookie: {
