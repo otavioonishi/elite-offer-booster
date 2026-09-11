@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
-import { Upload, Trash2 } from "lucide-react";
+import { Upload, Trash2, FolderOpen, Send } from "lucide-react";
 import { NeonButton } from "@/components/ui/NeonButton";
 import { supabase } from "@/integrations/supabase/client";
 import {
