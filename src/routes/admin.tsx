@@ -127,24 +127,52 @@ function AdminPage() {
     <main className="mx-auto min-h-screen w-full max-w-3xl px-4 py-14">
       <h1 className="mb-8 text-3xl font-black">Enviar <span className="gradient-text">conteúdo</span></h1>
 
-      <form onSubmit={onUpload} className="glass mb-10 rounded-3xl p-6">
+      <div className="glass mb-10 rounded-3xl p-6">
         <input
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="Título do vídeo"
           className="mb-4 w-full rounded-full border border-white/10 bg-white/5 px-5 py-3 outline-none focus:border-white/30"
         />
+
         <input
+          id="video-file"
           type="file"
           accept="video/*"
-          onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-          className="mb-4 w-full text-sm text-muted-foreground"
+          className="hidden"
+          onChange={(e) => {
+            setFile(e.target.files?.[0] ?? null);
+            setUploadedPath(null);
+            setStatus("");
+          }}
         />
-        <NeonButton type="submit" className="w-full">
-          <Upload className="h-5 w-5" /> Publicar vídeo
+
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row">
+          <label
+            htmlFor="video-file"
+            className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-full border border-white/15 bg-white/5 px-5 py-3 text-sm font-bold hover:bg-white/10"
+          >
+            <FolderOpen className="h-5 w-5" /> Escolher arquivo
+          </label>
+          <button
+            type="button"
+            onClick={onSendFile}
+            disabled={!file || sending || !!uploadedPath}
+            className="flex flex-1 items-center justify-center gap-2 rounded-full border border-white/15 bg-white/5 px-5 py-3 text-sm font-bold hover:bg-white/10 disabled:opacity-40"
+          >
+            <Upload className="h-5 w-5" /> Enviar arquivo
+          </button>
+        </div>
+
+        <p className="mb-4 truncate text-center text-xs text-muted-foreground">
+          {uploadedPath ? "Arquivo enviado ✓" : file ? file.name : "Nenhum arquivo escolhido"}
+        </p>
+
+        <NeonButton type="button" onClick={onPublish} className="w-full">
+          <Send className="h-5 w-5" /> Publicar vídeo
         </NeonButton>
         {status && <p className="mt-3 text-center text-sm text-muted-foreground">{status}</p>}
-      </form>
+      </div>
 
       <div className="space-y-4">
         {videos.map((v) => (
@@ -161,5 +189,6 @@ function AdminPage() {
         ))}
       </div>
     </main>
+
   );
 }
