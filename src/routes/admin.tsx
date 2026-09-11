@@ -82,7 +82,12 @@ function AdminPage() {
       setUploadedPath(path);
       setStatus("Arquivo enviado! Agora clique em Publicar vídeo.");
     } catch (err) {
-      setStatus(err instanceof Error ? err.message : "Erro no envio");
+      const msg = err instanceof Error ? err.message : "Erro no envio";
+      if (msg.includes("autorizado")) {
+        setIsAdmin(false);
+        setError("Sessão expirada, entre novamente.");
+      }
+      setStatus(msg);
     } finally {
       setSending(false);
     }
