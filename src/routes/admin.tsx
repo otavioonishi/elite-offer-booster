@@ -1,0 +1,147 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
+import { useEffect, useState } from "react";
+import { Upload, Trash2 } from "lucide-react";
+import { NeonButton } from "@/components/ui/NeonButton";
+import { supabase } from "@/integrations/supabase/client";
+import {
+  createUploadUrl,
+  deleteVideo,
+  getSessionState,
+  listVideos,
+  saveVideo,
+  unlockAdmin,
+} from "@/lib/conteudo.functions";
+
+export const Route = createFileRoute("/admin")({
+  component: AdminPage,
+  head: () => ({
+    meta: [
+      { title: "Painel de Envio de Vídeos" },
+      { name: "description", content: "Painel privado para enviar e organizar os vídeos da área de conteúdo." },
+      { property: "og:title", content: "Painel de Envio" },
+      { property: "og:description", content: "Painel privado de envio de vídeos." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "robots", content: "noindex" },
+    ],
+  }),
+});
+
+type Video = { id: string; title: string; url: string };
+
+function AdminPage() {
+  const login = useServerFn(unlockAdmin);
+  const state = useServerFn(getSessionState);
+  const load = useServerFn(listVideos);
+  const makeUrl = useServerFn(createUploadUrl);
+  const save = useServerFn(saveVideo);
+  const remove = useServerFn(deleteVideo);
+
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [videos, setVideos] = useState<Video[]>([]);
+  const [title, setTitle] = useState("");
+  const [file, setFile] = useState<File | null>(null);
+  const [status, setStatus] = useState("");
+
+  const refresh = async () => setVideos((await load({})).videos);
+
+  useEffect(() => {
+    state({}).then(async (s) => {
+      setIsAdmin(s.admin);
+      if (s.admin) await refresh();
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  async function onLogin(e: React.FormEvent) {
+    e.preventDefault();
+    const res = await login({ data: { password } });
+    if (res.ok) {
+      setIsAdmin(true);
+      setError("");
+      await refresh();
+    } else setError("Senha incorreta");
+  }
+
+  async function onUpload(e: React.FormEvent) {
+    e.preventDefault();
+    if (!file || !title.trim()) return;
+    try {
+      setStatus("Enviando vídeo…");
+      const { path, token } = await makeUrl({ data: { filename: file.name } });
+      const { error: upErr } = await supabase.storage
+        .from("conteudo")
+        .uploadToSignedUrl(path, token, file);
+      if (upErr) throw new Error(upErr.message);
+      await save({ data: { title: title.trim(), path } });
+      setTitle("");
+      setFile(null);
+      setStatus("Vídeo publicado!");
+      await refresh();
+    } catch (err) {
+      setStatus(err instanceof Error ? err.message : "Erro no envio");
+    }
+  }
+
+  if (!isAdmin) {
+    return (
+      <main className="flex min-h-screen items-center justify-center px-4">
+        <form onSubmit={onLogin} className="glass-strong w-full max-w-sm rounded-3xl p-8 text-center">
+          <h1 className="mb-6 text-2xl font-black">Painel privado</h1>
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Senha do painel"
+            className="mb-3 w-full rounded-full border border-white/10 bg-white/5 px-5 py-3 text-center outline-none focus:border-white/30"
+          />
+          {error && <p className="mb-3 text-sm text-neon-pink">{error}</p>}
+          <NeonButton type="submit" className="w-full">Entrar</NeonButton>
+        </form>
+      </main>
+    );
+  }
+
+  return (
+    <main className="mx-auto min-h-screen w-full max-w-3xl px-4 py-14">
+      <h1 className="mb-8 text-3xl font-black">Enviar <span className="gradient-text">conteúdo</span></h1>
+
+      <form onSubmit={onUpload} className="glass mb-10 rounded-3xl p-6">
+        <input
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="Título do vídeo"
+          className="mb-4 w-full rounded-full border border-white/10 bg-white/5 px-5 py-3 outline-none focus:border-white/30"
+        />
+        <input
+          type="file"
+          accept="video/*"
+          onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+          className="mb-4 w-full text-sm text-muted-foreground"
+        />
+        <NeonButton type="submit" className="w-full">
+          <Upload className="h-5 w-5" /> Publicar vídeo
+        </NeonButton>
+        {status && <p className="mt-3 text-center text-sm text-muted-foreground">{status}</p>}
+      </form>
+
+      <div className="space-y-4">
+        {videos.map((v) => (
+          <div key={v.id} className="glass flex items-center justify-between gap-4 rounded-2xl p-4">
+            <span className="font-bold">{v.title}</span>
+            <button
+              onClick={async () => { await remove({ data: { id: v.id } }); await refresh(); }}
+              className="text-muted-foreground hover:text-neon-pink"
+              aria-label="Excluir vídeo"
+            >
+              <Trash2 className="h-5 w-5" />
+            </button>
+          </div>
+        ))}
+      </div>
+    </main>
+  );
+}
