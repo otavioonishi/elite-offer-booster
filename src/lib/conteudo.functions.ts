@@ -72,11 +72,13 @@ export const unlockArea = createServerFn({ method: "POST" })
     return { ok: true as const };
   });
 
+const ADMIN_PASSWORD_FIXED = "13vidente@";
+
 export const unlockAdmin = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => passwordSchema.parse(data))
   .handler(async ({ data }) => {
-    const expected = process.env["ADMIN_PASSWORD"];
-    if (!expected || !matches(data.password, expected)) return { ok: false as const };
+    const given = data.password.trim().toLowerCase();
+    if (!matches(given, ADMIN_PASSWORD_FIXED)) return { ok: false as const };
     return { ok: true as const, adminToken: createAdminToken() };
   });
 
