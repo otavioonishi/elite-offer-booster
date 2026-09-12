@@ -1,17 +1,67 @@
 export const TELEGRAM_BOT = "ferdarocabot";
+export const TELEGRAM_HANDLE = "@ferdarocabot";
 export const TELEGRAM_WEB = "https://t.me/ferdarocabot?start=tiktok";
 export const TELEGRAM_DEEPLINK = "tg://resolve?domain=ferdarocabot&start=tiktok";
 
 type EventName =
+  | "site_view"
   | "telegram_cta_click"
   | "telegram_deeplink_attempt"
-  | "telegram_fallback_click";
+  | "telegram_fallback_click"
+  | "continue_on_site_click"
+  | "preview_view"
+  | "monthly_plan_click"
+  | "lifetime_plan_click"
+  | "checkout_open";
 
 declare global {
   interface Window {
     gtag?: (...args: unknown[]) => void;
     dataLayer?: unknown[];
     fbq?: (...args: unknown[]) => void;
+  }
+}
+
+const UTM_KEYS = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "ref", "src"];
+const UTM_STORAGE_KEY = "fer_utms";
+
+/** Reads UTMs from the URL and keeps them for the whole session. */
+export function captureUtms(): Record<string, string> {
+  if (typeof window === "undefined") return {};
+  try {
+    const stored: Record<string, string> = JSON.parse(
+      window.sessionStorage.getItem(UTM_STORAGE_KEY) ?? "{}",
+    );
+    new URLSearchParams(window.location.search).forEach((value, key) => {
+      if (UTM_KEYS.includes(key)) stored[key] = value;
+    });
+    window.sessionStorage.setItem(UTM_STORAGE_KEY, JSON.stringify(stored));
+    return stored;
+  } catch {
+    return {};
+  }
+}
+
+export function getUtmParams(): Record<string, string> {
+  if (typeof window === "undefined") return {};
+  try {
+    return JSON.parse(window.sessionStorage.getItem(UTM_STORAGE_KEY) ?? "{}");
+  } catch {
+    return {};
+  }
+}
+
+/** Appends the saved UTMs to a URL without breaking existing query params. */
+export function withUtms(url: string): string {
+  if (!url) return url;
+  try {
+    const parsed = new URL(url, typeof window !== "undefined" ? window.location.href : undefined);
+    Object.entries(getUtmParams()).forEach(([key, value]) => {
+      if (!parsed.searchParams.has(key)) parsed.searchParams.set(key, value);
+    });
+    return parsed.toString();
+  } catch {
+    return url;
   }
 }
 
@@ -24,6 +74,8 @@ export function trackEvent(name: EventName, params: Record<string, unknown> = {}
     window.dataLayer?.push({ event: name, ...payload });
     window.fbq?.("trackCustom", name, payload);
 
+    if (import.meta.env.DEV) console.log("[track]", name, payload);
+
     const key = "fer_events";
     const raw = window.localStorage.getItem(key);
     const counts: Record<string, number> = raw ? JSON.parse(raw) : {};
@@ -32,19 +84,6 @@ export function trackEvent(name: EventName, params: Record<string, unknown> = {}
   } catch {
     /* analytics must never break the flow */
   }
-}
-
-export function getUtmParams(): Record<string, string> {
-  if (typeof window === "undefined") return {};
-  const out: Record<string, string> = {};
-  try {
-    new URLSearchParams(window.location.search).forEach((value, key) => {
-      if (key.startsWith("utm_") || key === "ref" || key === "src") out[key] = value;
-    });
-  } catch {
-    /* ignore */
-  }
-  return out;
 }
 
 let opening = false;
