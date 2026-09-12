@@ -1,21 +1,27 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { ArrowRight } from "lucide-react";
-import { siteContent } from "@/content/site";
-import { SocialProof } from "@/components/SocialProof";
+import { Heart, ExternalLink } from "lucide-react";
+import { useState } from "react";
 import { NeonButton } from "@/components/ui/NeonButton";
+import { openTelegram, openTelegramWeb } from "@/lib/telegram";
 import heroImage from "@/assets/hero-new.png";
 
 export const Route = createFileRoute("/")({
   component: Home,
   head: () => ({
     meta: [
-      { title: "VIP Access — Conteúdo Exclusivo para Poucos" },
-      { name: "description", content: "Entre no círculo restrito. Acesso VIP a conteúdo premium exclusivo. Milhares de membros. Acesso imediato e discreto." },
-      { property: "og:title", content: "VIP Access — Conteúdo Exclusivo" },
-      { property: "og:description", content: "O acesso que ninguém quer que você tenha. Entre agora no círculo restrito." },
+      { title: "Fer da Roça — Fala comigo no Telegram" },
+      {
+        name: "description",
+        content:
+          "Quer me conhecer melhor? Toque no botão e venha conversar comigo no Telegram agora mesmo.",
+      },
+      { property: "og:title", content: "Fer da Roça — Fala comigo no Telegram" },
+      {
+        property: "og:description",
+        content: "Vem conversar comigo no Telegram. É só tocar no botão.",
+      },
       { property: "og:type", content: "website" },
-      { property: "og:url", content: "/" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [{ rel: "canonical", href: "/" }],
@@ -23,75 +29,101 @@ export const Route = createFileRoute("/")({
 });
 
 function Home() {
-  const navigate = useNavigate();
-  const c = siteContent.home;
+  const [showFallback, setShowFallback] = useState(false);
+
+  const go = () => openTelegram(() => setShowFallback(true));
 
   return (
-    <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-4 py-10">
-      {/* ambient background */}
+    <main className="relative flex min-h-screen flex-col items-center px-4 pb-32 pt-8 sm:justify-center">
+      {/* fundo quente e suave */}
       <div className="pointer-events-none absolute inset-0 -z-10">
-        <div className="absolute left-1/2 top-1/2 h-[45vh] w-[45vh] -translate-x-1/2 -translate-y-1/2 rounded-full bg-neon-purple/10 blur-[140px]" />
-        <div className="absolute bottom-0 right-0 h-[50vh] w-[50vh] rounded-full bg-neon-pink/15 blur-[120px]" />
+        <div className="absolute left-1/2 top-0 h-[50vh] w-[60vh] -translate-x-1/2 rounded-full bg-[oklch(0.72_0.08_60_/_0.18)] blur-[130px]" />
+        <div className="absolute bottom-0 right-0 h-[40vh] w-[40vh] rounded-full bg-neon-pink/10 blur-[120px]" />
       </div>
 
-      {/* Badge / tagline */}
+      {/* Foto da Fernanda */}
       <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="mb-6 inline-flex items-center gap-2 rounded-full glass px-4 py-1.5 text-xs uppercase tracking-widest"
-      >
-        <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-neon-pink" />
-        {siteContent.brand.tagline}
-      </motion.div>
-
-      {/* Hero Image */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
+        initial={{ opacity: 0, scale: 0.96 }}
         animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.8 }}
-        className="relative mb-8 w-full max-w-md aspect-[9/16]"
+        transition={{ duration: 0.6 }}
+        className="w-full max-w-sm"
       >
         <img
           src={heroImage}
-          alt="Preview exclusivo"
-          className="w-full h-full object-cover rounded-[2rem] shadow-2xl pointer-events-none select-none"
+          alt="Fernanda"
+          width={768}
+          height={1365}
+          fetchPriority="high"
+          decoding="async"
+          className="aspect-[3/4] w-full select-none rounded-[2rem] object-cover object-top shadow-2xl"
         />
-
       </motion.div>
 
       {/* Headline */}
       <motion.h1
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 14 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        className="mb-3 max-w-2xl text-center text-3xl font-black leading-tight sm:text-5xl"
+        transition={{ delay: 0.15 }}
+        className="mt-6 max-w-md text-center text-3xl font-black leading-tight sm:text-4xl"
       >
-        {c.headline.split(" ").slice(0, -3).join(" ")}{" "}
-        <span className="gradient-text">
-          {c.headline.split(" ").slice(-3).join(" ")}
-        </span>
+        Quer me conhecer melhor? 👀❤️
       </motion.h1>
 
-      {/* CTA */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
+      <motion.p
+        initial={{ opacity: 0, y: 14 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5 }}
-        className="mb-6"
+        transition={{ delay: 0.25 }}
+        className="mt-3 max-w-sm text-center text-base text-muted-foreground"
       >
-        <NeonButton size="xl" onClick={() => navigate({ to: "/area" })}>
-          {c.cta} <ArrowRight className="h-5 w-5" />
+        Vem conversar comigo no Telegram.
+      </motion.p>
+
+      {/* CTA principal */}
+      <motion.div
+        initial={{ opacity: 0, y: 14 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.35 }}
+        className="mt-6 w-full max-w-sm"
+      >
+        <NeonButton size="xl" onClick={go} className="w-full py-6 text-lg">
+          <Heart className="h-5 w-5 fill-current" /> FALAR COM A FER
         </NeonButton>
       </motion.div>
 
-      {/* Social proof */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.7 }}
-      >
-        <SocialProof />
-      </motion.div>
+      {/* Alternativa */}
+      <div className="mt-6 w-full max-w-sm text-center">
+        {showFallback ? (
+          <div className="glass rounded-2xl p-4">
+            <p className="text-sm font-semibold">Não abriu o Telegram?</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Toque abaixo ou procure @ferdarocabot no Telegram.
+            </p>
+            <button
+              onClick={openTelegramWeb}
+              className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-full border border-border px-5 py-3 text-sm font-bold uppercase tracking-wide"
+            >
+              <ExternalLink className="h-4 w-4" /> Abrir Telegram
+            </button>
+          </div>
+        ) : (
+          <p className="text-xs text-muted-foreground">
+            Ou procure <span className="font-semibold text-foreground">@ferdarocabot</span> no
+            Telegram e aperte START ❤️
+          </p>
+        )}
+      </div>
+
+      {/* Botão fixo no rodapé */}
+      <div className="fixed inset-x-0 bottom-0 z-40 bg-gradient-to-t from-background via-background/90 to-transparent p-3">
+        <div className="mx-auto max-w-sm">
+          <button
+            onClick={go}
+            className="btn-neon animate-pulse-glow flex w-full items-center justify-center gap-2 rounded-full py-4 text-sm font-bold uppercase tracking-wider"
+          >
+            <Heart className="h-5 w-5 fill-current" /> Falar com a Fer
+          </button>
+        </div>
+      </div>
     </main>
   );
 }
