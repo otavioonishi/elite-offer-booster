@@ -206,6 +206,8 @@ function Home() {
         </div>
       )}
 
+      {checkoutPlan && <PixCheckout plan={checkoutPlan} onClose={() => setCheckoutPlan(null)} />}
+
       {toast && (
         <div role="status" aria-live="polite" className="fixed bottom-24 left-1/2 z-50 w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 rounded-xl border border-border bg-card px-4 py-3 text-center text-sm shadow-xl">
           <Check className="mr-1 inline h-4 w-4 text-emerald-400" aria-hidden="true" />{toast}
