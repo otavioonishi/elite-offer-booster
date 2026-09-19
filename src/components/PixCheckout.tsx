@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Check, Copy, Loader2, Send, X } from "lucide-react";
 import { CHECK_PIX_URL, CHECKOUT_UNAVAILABLE_MESSAGE, CREATE_PIX_URL, plans } from "@/config/checkout";
-import { openTelegram, trackEvent } from "@/lib/telegram";
+import { openTelegram, openTelegramWeb, trackEvent } from "@/lib/telegram";
 
 type Plan = (typeof plans)[number];
 
@@ -237,10 +237,10 @@ export function PixCheckout({ plan, onClose }: Props) {
               <Check className="h-8 w-8 text-emerald-400" aria-hidden="true" />
             </span>
             <h2 className="mt-4 text-xl font-black">Pagamento confirmado</h2>
-            <p className="mt-1 text-sm text-muted-foreground">Seu acesso foi liberado.</p>
+            <p className="mt-1 text-sm text-muted-foreground">Chame no Telegram para receber seu acesso.</p>
             <button
               type="button"
-              onClick={() => openTelegram()}
+              onClick={() => openTelegram(openTelegramWeb)}
               className="mt-5 inline-flex min-h-14 w-full items-center justify-center gap-2 rounded-full bg-neon-pink text-base font-black text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neon-pink"
             >
               <Send className="h-5 w-5" aria-hidden="true" />Falar no Telegram
