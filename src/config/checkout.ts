@@ -1,42 +1,31 @@
 /**
  * ============================================================
- *  LINKS DE PAGAMENTO — COLE AQUI OS LINKS DOS SEUS CHECKOUTS
+ *  CONFIGURAÇÃO DO CHECKOUT PIX
  * ============================================================
  *
- *  MONTHLY_CHECKOUT_URL  -> link do plano VIP MENSAL (R$ 19,90)
- *  LIFETIME_CHECKOUT_URL -> link do plano VIP VITALÍCIO (R$ 59,90)
- *
- *  Exemplo:
- *  export const MONTHLY_CHECKOUT_URL = "https://pay.exemplo.com/mensal";
- *
- *  Enquanto ficarem vazios (""), o botão mostra uma mensagem amigável
- *  em vez de dar erro.
+ *  API_URL -> endereço do servidor que gera o PIX.
+ *  Troque pelo endereço real do seu servidor.
  */
-export const MONTHLY_CHECKOUT_URL = "";
-export const LIFETIME_CHECKOUT_URL = "";
+export const API_URL = "https://SEU-SERVIDOR.onrender.com";
 
 export const CHECKOUT_UNAVAILABLE_MESSAGE =
   "Esse acesso está sendo atualizado. Tente novamente em instantes ❤️";
 
 export const plans = [
   {
-    id: "monthly" as const,
-    title: "🌾 VIP MENSAL",
-    price: "R$ 19,90",
-    text: "Acesso mensal ao VIP.",
-    cta: "QUERO O VIP MENSAL ❤️",
-    url: MONTHLY_CHECKOUT_URL,
+    id: "basic" as const,
+    title: "Acesso",
+    price: "R$ 7,90",
+    text: "Acesso básico.",
     highlight: false,
     badge: null as string | null,
   },
   {
-    id: "lifetime" as const,
-    title: "❤️ VIP VITALÍCIO",
-    price: "R$ 59,90",
-    text: "Pagamento único. Acesso vitalício.",
-    cta: "QUERO ACESSO VITALÍCIO 🔥",
-    url: LIFETIME_CHECKOUT_URL,
+    id: "vip" as const,
+    title: "Acesso VIP",
+    price: "R$ 17,93",
+    text: "Acesso VIP.",
     highlight: true,
-    badge: "MAIS VANTAJOSO",
+    badge: "Recomendado",
   },
 ];

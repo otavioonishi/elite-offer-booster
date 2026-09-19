@@ -2,8 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Check, Copy, ExternalLink, Flame, Heart, Play, Send } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { NeonButton } from "@/components/ui/NeonButton";
-import { captureUtms, openTelegram, openTelegramWeb, TELEGRAM_HANDLE, trackEvent, withUtms } from "@/lib/telegram";
-import { CHECKOUT_UNAVAILABLE_MESSAGE, plans } from "@/config/checkout";
+import { captureUtms, openTelegram, openTelegramWeb, TELEGRAM_HANDLE, trackEvent } from "@/lib/telegram";
+import { plans } from "@/config/checkout";
+import { PixCheckout } from "@/components/PixCheckout";
 import heroImage from "@/assets/hero-new.png";
 
 // Cole aqui o endereço do vídeo quando ele estiver hospedado.
@@ -34,6 +35,7 @@ function Home() {
   const [toast, setToast] = useState<string | null>(null);
   const [telegramFallback, setTelegramFallback] = useState(false);
   const [showSticky, setShowSticky] = useState(true);
+  const [checkoutPlan, setCheckoutPlan] = useState<Plan | null>(null);
   const plansRef = useRef<HTMLElement | null>(null);
 
   // Plano em destaque (VIP). Não depende mais da posição no array.
@@ -59,10 +61,9 @@ function Home() {
   const showToast = (message: string) => setToast(message);
 
   const handlePlan = (plan: Plan) => {
-    trackEvent(plan.id === "monthly" ? "monthly_plan_click" : "lifetime_plan_click");
-    if (!plan.url) { showToast(CHECKOUT_UNAVAILABLE_MESSAGE); return; }
+    trackEvent(plan.id === "basic" ? "basic_plan_click" : "vip_plan_click");
     trackEvent("checkout_open", { plan: plan.id });
-    window.location.href = withUtms(plan.url);
+    setCheckoutPlan(plan);
   };
 
   const copyHandle = async () => {
@@ -204,6 +205,8 @@ function Home() {
           </div>
         </div>
       )}
+
+      {checkoutPlan && <PixCheckout plan={checkoutPlan} onClose={() => setCheckoutPlan(null)} />}
 
       {toast && (
         <div role="status" aria-live="polite" className="fixed bottom-24 left-1/2 z-50 w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 rounded-xl border border-border bg-card px-4 py-3 text-center text-sm shadow-xl">
