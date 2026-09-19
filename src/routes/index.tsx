@@ -2,8 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Check, Copy, ExternalLink, Flame, Heart, Play, Send } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { NeonButton } from "@/components/ui/NeonButton";
-import { captureUtms, openTelegram, openTelegramWeb, TELEGRAM_HANDLE, trackEvent, withUtms } from "@/lib/telegram";
-import { CHECKOUT_UNAVAILABLE_MESSAGE, plans } from "@/config/checkout";
+import { captureUtms, openTelegram, openTelegramWeb, TELEGRAM_HANDLE, trackEvent } from "@/lib/telegram";
+import { plans } from "@/config/checkout";
+import { PixCheckout } from "@/components/PixCheckout";
 import heroImage from "@/assets/hero-new.png";
 
 // Cole aqui o endereço do vídeo quando ele estiver hospedado.
