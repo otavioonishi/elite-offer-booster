@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Check, Copy, Loader2, Send, X } from "lucide-react";
-import { API_URL, CHECKOUT_UNAVAILABLE_MESSAGE, plans } from "@/config/checkout";
+import { CHECK_PIX_URL, CHECKOUT_UNAVAILABLE_MESSAGE, CREATE_PIX_URL, plans } from "@/config/checkout";
 import { openTelegram, trackEvent } from "@/lib/telegram";
 
 type Plan = (typeof plans)[number];
@@ -59,7 +59,7 @@ export function PixCheckout({ plan, onClose }: Props) {
 
     setLoading(true);
     try {
-      const res = await fetch(`${API_URL}/api/fernanda/create-pix`, {
+      const res = await fetch(CREATE_PIX_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -101,7 +101,7 @@ export function PixCheckout({ plan, onClose }: Props) {
         return;
       }
       try {
-        const res = await fetch(`${API_URL}/api/check-status`, {
+        const res = await fetch(CHECK_PIX_URL, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ transactionId: pix.transactionId }),

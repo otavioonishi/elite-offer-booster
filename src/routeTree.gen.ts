@@ -12,6 +12,8 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AreaRouteImport } from './routes/area'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiPublicPixStatusRouteImport } from './routes/api/public/pix/status'
+import { Route as ApiPublicPixCreateRouteImport } from './routes/api/public/pix/create'
 
 const AreaRoute = AreaRouteImport.update({
   id: '/area',
@@ -28,35 +30,69 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicPixStatusRoute = ApiPublicPixStatusRouteImport.update({
+  id: '/api/public/pix/status',
+  path: '/api/public/pix/status',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicPixCreateRoute = ApiPublicPixCreateRouteImport.update({
+  id: '/api/public/pix/create',
+  path: '/api/public/pix/create',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/area': typeof AreaRoute
+  '/api/public/pix/create': typeof ApiPublicPixCreateRoute
+  '/api/public/pix/status': typeof ApiPublicPixStatusRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/area': typeof AreaRoute
+  '/api/public/pix/create': typeof ApiPublicPixCreateRoute
+  '/api/public/pix/status': typeof ApiPublicPixStatusRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/area': typeof AreaRoute
+  '/api/public/pix/create': typeof ApiPublicPixCreateRoute
+  '/api/public/pix/status': typeof ApiPublicPixStatusRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/admin' | '/area'
+  fullPaths:
+    | '/'
+    | '/admin'
+    | '/area'
+    | '/api/public/pix/create'
+    | '/api/public/pix/status'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/admin' | '/area'
-  id: '__root__' | '/' | '/admin' | '/area'
+  to:
+    | '/'
+    | '/admin'
+    | '/area'
+    | '/api/public/pix/create'
+    | '/api/public/pix/status'
+  id:
+    | '__root__'
+    | '/'
+    | '/admin'
+    | '/area'
+    | '/api/public/pix/create'
+    | '/api/public/pix/status'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
   AreaRoute: typeof AreaRoute
+  ApiPublicPixCreateRoute: typeof ApiPublicPixCreateRoute
+  ApiPublicPixStatusRoute: typeof ApiPublicPixStatusRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -82,6 +118,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/pix/status': {
+      id: '/api/public/pix/status'
+      path: '/api/public/pix/status'
+      fullPath: '/api/public/pix/status'
+      preLoaderRoute: typeof ApiPublicPixStatusRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/pix/create': {
+      id: '/api/public/pix/create'
+      path: '/api/public/pix/create'
+      fullPath: '/api/public/pix/create'
+      preLoaderRoute: typeof ApiPublicPixCreateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -89,6 +139,8 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
   AreaRoute: AreaRoute,
+  ApiPublicPixCreateRoute: ApiPublicPixCreateRoute,
+  ApiPublicPixStatusRoute: ApiPublicPixStatusRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
