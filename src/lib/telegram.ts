@@ -12,6 +12,11 @@ type EventName =
   | "preview_view"
   | "monthly_plan_click"
   | "lifetime_plan_click"
+  | "basic_plan_click"
+  | "vip_plan_click"
+  | "pix_created"
+  | "pix_copied"
+  | "payment_confirmed"
   | "checkout_open";
 
 declare global {
