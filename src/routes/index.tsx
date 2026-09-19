@@ -5,9 +5,8 @@ import { NeonButton } from "@/components/ui/NeonButton";
 import { captureUtms, openTelegram, openTelegramWeb, TELEGRAM_HANDLE, trackEvent } from "@/lib/telegram";
 import { plans } from "@/config/checkout";
 import { PixCheckout } from "@/components/PixCheckout";
-import heroImage from "@/assets/hero-new.png";
 
-// Cole aqui o endereço do vídeo quando ele estiver hospedado.
+// Arquivo enviado para a pasta public do projeto: public/previa.mp4.
 const PREVIEW_VIDEO_URL = "/previa.mp4";
 
 type Plan = (typeof plans)[number];
@@ -89,10 +88,19 @@ function Home() {
 
         <section className="relative h-[68svh] max-h-[720px] min-h-[440px] w-full overflow-hidden rounded-3xl border border-border bg-black">
           {hasVideo ? (
-            <video src={PREVIEW_VIDEO_URL} poster={heroImage} controls playsInline preload="metadata" controlsList="nodownload" className="h-full w-full object-cover" aria-label="Vídeo de prévia da Fernanda" />
+            <video
+              src={PREVIEW_VIDEO_URL}
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="metadata"
+              className="h-full w-full object-cover"
+              aria-label="Vídeo de prévia da Fernanda"
+            />
           ) : (
             <>
-              <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `linear-gradient(rgba(0,0,0,.15), rgba(0,0,0,.75)), url(${heroImage})` }} />
+              <div className="absolute inset-0 bg-gradient-to-b from-zinc-900 to-black" />
               <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
                 <div className="relative">
                   <span aria-hidden="true" className="fdr-pulse absolute inset-0 rounded-full bg-neon-pink/60" />
