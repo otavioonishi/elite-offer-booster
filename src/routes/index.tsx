@@ -8,7 +8,7 @@ import { PixCheckout } from "@/components/PixCheckout";
 import heroImage from "@/assets/hero-new.png";
 
 // Cole aqui o endereço do vídeo quando ele estiver hospedado.
-const PREVIEW_VIDEO_URL = "";
+const PREVIEW_VIDEO_URL = "/previa.mp4";
 
 type Plan = (typeof plans)[number];
 
