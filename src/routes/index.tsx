@@ -1,290 +1,214 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { motion } from "framer-motion";
-import { Heart, ExternalLink, Eye, Copy, Check, Flame } from "lucide-react";
+import { Check, Copy, ExternalLink, Flame, Heart, Play, Send } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { NeonButton } from "@/components/ui/NeonButton";
-import {
-  openTelegram,
-  openTelegramWeb,
-  trackEvent,
-  captureUtms,
-  withUtms,
-  TELEGRAM_HANDLE,
-} from "@/lib/telegram";
-import { plans, CHECKOUT_UNAVAILABLE_MESSAGE } from "@/config/checkout";
+import { captureUtms, openTelegram, openTelegramWeb, TELEGRAM_HANDLE, trackEvent, withUtms } from "@/lib/telegram";
+import { CHECKOUT_UNAVAILABLE_MESSAGE, plans } from "@/config/checkout";
 import heroImage from "@/assets/hero-new.png";
-// Para trocar a imagem da prévia, basta substituir o arquivo abaixo:
-import previewImage from "@/assets/previe.jpg";
+
+// Cole aqui o endereço do vídeo quando ele estiver hospedado.
+const PREVIEW_VIDEO_URL = "";
+
+type Plan = (typeof plans)[number];
+
+const styles = `
+@keyframes fdr-pulse { 0% { transform: scale(1); opacity: .55; } 100% { transform: scale(1.9); opacity: 0; } }
+@keyframes fdr-rise { from { opacity: 0; transform: translateY(100%); } to { opacity: 1; transform: none; } }
+.fdr-pulse { animation: fdr-pulse 2s ease-out infinite; }
+.fdr-rise { animation: fdr-rise .35s ease-out both; }
+@media (prefers-reduced-motion: reduce) { .fdr-pulse, .fdr-rise { animation: none; } }
+`;
 
 export const Route = createFileRoute("/")({
   component: Home,
-  head: () => ({
-    meta: [
-      { title: "Fer da Roça — Fala comigo ou garanta seu acesso VIP" },
-      {
-        name: "description",
-        content:
-          "Fala comigo no Telegram ou continue por aqui: veja a prévia e escolha seu acesso VIP mensal ou vitalício.",
-      },
-      { property: "og:title", content: "Fer da Roça — Fala comigo ou garanta seu acesso VIP" },
-      {
-        property: "og:description",
-        content: "Fala comigo no Telegram ou escolha seu acesso VIP direto por aqui.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-    links: [{ rel: "canonical", href: "/" }],
-  }),
+  head: () => ({ meta: [
+    { title: "Fernanda da Roça · Seu acesso" },
+    { name: "description", content: "Veja uma prévia e escolha seu acesso básico ou VIP." },
+    { property: "og:title", content: "Fernanda da Roça · Seu acesso" },
+    { property: "og:description", content: "Veja uma prévia e escolha seu acesso." },
+    { property: "og:type", content: "website" },
+  ] }),
 });
 
 function Home() {
-  const [showFallback, setShowFallback] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
-  const [showStickyCta, setShowStickyCta] = useState(false);
-  const previewRef = useRef<HTMLElement | null>(null);
+  const [telegramFallback, setTelegramFallback] = useState(false);
+  const [showSticky, setShowSticky] = useState(true);
   const plansRef = useRef<HTMLElement | null>(null);
 
-  const go = () => openTelegram(() => setShowFallback(true));
+  // Plano em destaque (VIP). Não depende mais da posição no array.
+  const vipPlan: Plan | undefined = plans.find((p) => p.highlight) ?? plans[plans.length - 1];
 
-  const showToast = (message: string) => {
-    setToast(message);
-    window.setTimeout(() => setToast(null), 2600);
-  };
-
-  const scrollTo = (el: HTMLElement | null) => el?.scrollIntoView({ behavior: "smooth", block: "start" });
+  useEffect(() => { captureUtms(); trackEvent("site_view"); }, []);
 
   useEffect(() => {
-    captureUtms();
-    trackEvent("site_view");
-  }, []);
+    if (!toast) return;
+    const timer = window.setTimeout(() => setToast(null), 2800);
+    return () => window.clearTimeout(timer);
+  }, [toast]);
 
-  // prévia vista + CTA fixo depois de rolar
+  // Esconde a barra fixa quando os planos já estão na tela.
   useEffect(() => {
-    const node = previewRef.current;
-    if (!node) return;
-    const io = new IntersectionObserver(
-      (entries) => {
-        if (entries.some((e) => e.isIntersecting)) {
-          trackEvent("preview_view");
-          io.disconnect();
-        }
-      },
-      { threshold: 0.3 },
-    );
-    io.observe(node);
-    return () => io.disconnect();
+    const el = plansRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    const observer = new IntersectionObserver(([entry]) => setShowSticky(!entry.isIntersecting), { threshold: 0.35 });
+    observer.observe(el);
+    return () => observer.disconnect();
   }, []);
 
-  useEffect(() => {
-    const onScroll = () => setShowStickyCta(window.scrollY > 320);
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+  const showToast = (message: string) => setToast(message);
 
-  const handleContinue = () => {
-    trackEvent("continue_on_site_click");
-    scrollTo(previewRef.current);
-  };
-
-  const handlePlan = (plan: (typeof plans)[number]) => {
+  const handlePlan = (plan: Plan) => {
     trackEvent(plan.id === "monthly" ? "monthly_plan_click" : "lifetime_plan_click");
-    if (!plan.url) {
-      showToast(CHECKOUT_UNAVAILABLE_MESSAGE);
-      return;
-    }
+    if (!plan.url) { showToast(CHECKOUT_UNAVAILABLE_MESSAGE); return; }
     trackEvent("checkout_open", { plan: plan.id });
     window.location.href = withUtms(plan.url);
   };
 
   const copyHandle = async () => {
-    try {
-      await navigator.clipboard.writeText(TELEGRAM_HANDLE);
-      showToast("Usuário copiado ❤️");
-    } catch {
-      showToast("Copie manualmente: " + TELEGRAM_HANDLE);
-    }
+    try { await navigator.clipboard.writeText(TELEGRAM_HANDLE); showToast("Usuário copiado"); }
+    catch { showToast(`Procure por ${TELEGRAM_HANDLE} no Telegram`); }
   };
 
+  const hasVideo = Boolean(PREVIEW_VIDEO_URL);
+
   return (
-    <main className="relative flex min-h-screen flex-col items-center px-4 pb-32 pt-8">
-      {/* fundo quente e suave */}
-      <div className="pointer-events-none absolute inset-0 -z-10">
-        <div className="absolute left-1/2 top-0 h-[50vh] w-[60vh] -translate-x-1/2 rounded-full bg-[oklch(0.72_0.08_60_/_0.18)] blur-[130px]" />
-        <div className="absolute bottom-0 right-0 h-[40vh] w-[40vh] rounded-full bg-neon-pink/10 blur-[120px]" />
-      </div>
+    <main className="relative min-h-screen overflow-x-hidden bg-background px-3 pb-32 pt-3 text-foreground sm:px-5 sm:pt-8">
+      <style>{styles}</style>
+      <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-96 bg-gradient-to-b from-neon-pink/15 to-transparent" />
 
-      {/* ============ PRIMEIRA DOBRA ============ */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.96 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.6 }}
-        className="w-full max-w-sm"
-      >
-        <img
-          src={heroImage}
-          alt="Fernanda"
-          width={768}
-          height={1365}
-          fetchPriority="high"
-          decoding="async"
-          className="aspect-[4/5] w-full select-none rounded-[2rem] object-cover object-top shadow-2xl"
-        />
-      </motion.div>
-
-      <motion.h1
-        initial={{ opacity: 0, y: 14 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.15 }}
-        className="mt-5 max-w-md text-center text-3xl font-black leading-tight sm:text-4xl"
-      >
-        Quer me conhecer melhor? 👀❤️
-      </motion.h1>
-
-      <motion.p
-        initial={{ opacity: 0, y: 14 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.25 }}
-        className="mt-2 max-w-sm text-center text-base text-muted-foreground"
-      >
-        Escolha como você quer continuar.
-      </motion.p>
-
-      <motion.div
-        initial={{ opacity: 0, y: 14 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.35 }}
-        className="mt-5 w-full max-w-sm"
-      >
-        <NeonButton size="xl" onClick={go} className="w-full py-5 text-lg">
-          <Heart className="h-5 w-5 fill-current" /> FALAR COM A FER
-        </NeonButton>
-      </motion.div>
-
-      <div className="mt-4 w-full max-w-sm text-center">
-        <p className="text-sm font-semibold">Telegram não abriu? Sem problema ❤️</p>
-        <button
-          onClick={handleContinue}
-          className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-full border border-border bg-white/5 px-5 py-4 text-sm font-bold uppercase tracking-wide backdrop-blur transition hover:bg-white/10"
-        >
-          <Eye className="h-4 w-4" /> Continuar por aqui
-        </button>
-      </div>
-
-      {showFallback && (
-        <div className="glass mt-4 w-full max-w-sm rounded-2xl p-4 text-center">
-          <p className="text-sm font-semibold">Não abriu o Telegram?</p>
-          <button
-            onClick={openTelegramWeb}
-            className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-full border border-border px-5 py-3 text-sm font-bold uppercase tracking-wide"
-          >
-            <ExternalLink className="h-4 w-4" /> Abrir Telegram
-          </button>
-        </div>
-      )}
-
-      {/* ============ PRÉVIA ============ */}
-      <section ref={previewRef} id="previa" className="mt-16 w-full max-w-sm scroll-mt-6">
-        <h2 className="text-center text-2xl font-black leading-tight">
-          Só um gostinho do meu lado mais reservado… 👀❤️
-        </h2>
-        <p className="mt-2 text-center text-sm text-muted-foreground">
-          Gostou do que viu? Escolha seu acesso abaixo.
-        </p>
-        <motion.img
-          initial={{ opacity: 0, y: 18 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          src={previewImage}
-          alt="Prévia da Fernanda"
-          loading="lazy"
-          decoding="async"
-          className="mt-5 aspect-[4/5] w-full select-none rounded-[2rem] object-cover shadow-2xl"
-        />
-      </section>
-
-      {/* ============ PLANOS ============ */}
-      <section ref={plansRef} id="planos" className="mt-14 w-full max-w-sm scroll-mt-6">
-        <h2 className="text-center text-2xl font-black">Escolha seu acesso</h2>
-        <div className="mt-5 flex flex-col gap-4">
-          {plans.map((plan) => (
-            <motion.div
-              key={plan.id}
-              initial={{ opacity: 0, y: 18 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className={`glass relative rounded-3xl p-6 text-center ${
-                plan.highlight ? "border border-neon-pink/40 shadow-lg" : "border border-white/10"
-              }`}
-            >
-              {plan.badge && (
-                <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-neon-pink/90 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-white">
-                  <Flame className="mr-1 inline h-3 w-3" />
-                  {plan.badge}
-                </span>
-              )}
-              <h3 className="text-lg font-black">{plan.title}</h3>
-              <p className="mt-2 text-4xl font-black gradient-text">{plan.price}</p>
-              <p className="mt-2 text-sm text-muted-foreground">{plan.text}</p>
-              <NeonButton onClick={() => handlePlan(plan)} className="mt-5 w-full py-4">
-                {plan.cta}
-              </NeonButton>
-            </motion.div>
-          ))}
-        </div>
-      </section>
-
-      {/* ============ TELEGRAM / FALLBACK ============ */}
-      <section className="mt-14 w-full max-w-sm text-center">
-        <p className="text-sm font-semibold">Prefere falar comigo primeiro? ❤️</p>
-        <button
-          onClick={go}
-          className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-full border border-border bg-white/5 px-5 py-4 text-sm font-bold uppercase tracking-wide hover:bg-white/10"
-        >
-          <ExternalLink className="h-4 w-4" /> Abrir Telegram
-        </button>
-        <p className="mt-3 text-xs text-muted-foreground">
-          Se não abrir, procure{" "}
-          <span className="font-semibold text-foreground">{TELEGRAM_HANDLE}</span> no Telegram e
-          aperte START.
-        </p>
-        <button
-          onClick={copyHandle}
-          className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-full border border-border px-5 py-3 text-xs font-bold uppercase tracking-wide"
-        >
-          <Copy className="h-4 w-4" /> Copiar {TELEGRAM_HANDLE}
-        </button>
-      </section>
-
-      {/* ============ CTA FIXO ============ */}
-      {showStickyCta && (
-        <motion.div
-          initial={{ y: 80, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          className="fixed inset-x-0 bottom-0 z-40 bg-gradient-to-t from-background via-background/90 to-transparent p-3"
-        >
-          <div className="mx-auto max-w-sm">
-            <button
-              onClick={() => scrollTo(plansRef.current)}
-              className="btn-neon flex w-full items-center justify-center gap-2 rounded-full py-4 text-sm font-bold uppercase tracking-wider"
-            >
-              <Heart className="h-5 w-5 fill-current" /> Ver os planos
-            </button>
+      <div className="relative mx-auto w-full max-w-md">
+        <header className="flex items-center justify-between px-1 pb-3">
+          <div className="flex items-center gap-2.5">
+            <span className="grid h-10 w-10 place-items-center rounded-full border-2 border-neon-pink/60 bg-neon-pink/10 font-serif text-xl italic text-neon-pink">F</span>
+            <span className="text-base font-bold tracking-tight">Fernanda da Roça</span>
           </div>
-        </motion.div>
+          <span className="rounded-full border border-border px-2.5 py-1 text-xs font-bold">+18</span>
+        </header>
+
+        <section className="relative h-[68svh] max-h-[720px] min-h-[440px] w-full overflow-hidden rounded-3xl border border-border bg-black">
+          {hasVideo ? (
+            <video src={PREVIEW_VIDEO_URL} poster={heroImage} controls playsInline preload="metadata" controlsList="nodownload" className="h-full w-full object-cover" aria-label="Vídeo de prévia da Fernanda" />
+          ) : (
+            <>
+              <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `linear-gradient(rgba(0,0,0,.15), rgba(0,0,0,.75)), url(${heroImage})` }} />
+              <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                <div className="relative">
+                  <span aria-hidden="true" className="fdr-pulse absolute inset-0 rounded-full bg-neon-pink/60" />
+                  <span className="relative grid h-20 w-20 place-items-center rounded-full border border-white/40 bg-black/40 backdrop-blur">
+                    <Play className="ml-1 h-8 w-8 fill-white text-white" aria-hidden="true" />
+                  </span>
+                </div>
+                <p className="mt-5 text-xl font-bold">Sua prévia vem aí</p>
+                <p className="mt-1 max-w-[220px] text-sm text-white/80">Enquanto isso, veja uma prévia no Telegram.</p>
+              </div>
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent p-4 pr-24 pt-16">
+                <p className="text-lg font-black leading-tight">Fernanda da Roça</p>
+                <p className="mt-0.5 text-sm text-white/80">Veja a prévia e escolha seu acesso.</p>
+              </div>
+            </>
+          )}
+
+          <span className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-black/50 px-3 py-1.5 text-xs font-semibold backdrop-blur">
+            <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-neon-pink" />Prévia
+          </span>
+
+          <a
+            href="https://t.me/ferdarocabot?start=tiktok"
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => trackEvent("telegram_cta_click")}
+            className={`absolute right-3 z-10 flex w-[76px] flex-col items-center gap-1.5 rounded-xl text-center text-[11px] font-semibold leading-tight text-white [text-shadow:0_1px_6px_rgba(0,0,0,.8)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neon-pink ${hasVideo ? "bottom-16" : "bottom-5"}`}
+          >
+            <span className="grid h-12 w-12 place-items-center rounded-full bg-neon-pink text-white shadow-lg">
+              <Send className="h-5 w-5" aria-hidden="true" />
+            </span>
+            Prévia no Telegram
+          </a>
+        </section>
+
+        <section ref={plansRef} className="mt-7">
+          <h1 className="text-[28px] font-black leading-[1.1] tracking-tight">Fique mais um pouco comigo</h1>
+          <p className="mt-2 text-[15px] text-muted-foreground">Escolha seu acesso para assistir aqui.</p>
+
+          <div className="mt-6 flex flex-col gap-4">
+            {plans.map((plan) => (
+              <button
+                key={plan.id}
+                type="button"
+                onClick={() => handlePlan(plan)}
+                className={`relative isolate w-full rounded-2xl border p-4 text-left transition active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neon-pink ${plan.highlight ? "border-neon-pink bg-neon-pink/10" : "border-border bg-card/60 hover:border-neon-pink/60"}`}
+              >
+                {plan.highlight && <span aria-hidden="true" className="pointer-events-none absolute -inset-1 -z-10 rounded-3xl bg-neon-pink/20 blur-xl" />}
+                {plan.badge && (
+                  <span className="absolute -top-3 right-4 inline-flex items-center rounded-full bg-neon-pink px-3 py-1 text-xs font-black text-white shadow-md">
+                    <Flame className="mr-1 h-3.5 w-3.5" aria-hidden="true" />{plan.badge}
+                  </span>
+                )}
+                <span className="flex items-center justify-between gap-4">
+                  <span className="min-w-0">
+                    <span className="flex items-center gap-2 text-base font-bold">
+                      {plan.title.replace(/^[^A-ZÀ-Ú]*/, "")}
+                      <Heart className="h-4 w-4 shrink-0 text-neon-pink" aria-hidden="true" />
+                    </span>
+                    <span className="mt-1 block text-sm text-muted-foreground">{plan.text}</span>
+                  </span>
+                  <span className="shrink-0 text-2xl font-black">{plan.price}</span>
+                </span>
+              </button>
+            ))}
+          </div>
+
+          {vipPlan && (
+            <NeonButton type="button" onClick={() => handlePlan(vipPlan)} className="mt-5 w-full py-4 text-base">
+              Quero meu acesso VIP
+            </NeonButton>
+          )}
+          <p className="mt-3 text-center text-xs text-muted-foreground">Conteúdo exclusivo para maiores de 18 anos.</p>
+        </section>
+
+        <section className="mt-8 rounded-2xl border border-border bg-card/40 p-4 text-center">
+          <p className="text-sm font-semibold">Prefere conversar antes?</p>
+          <button
+            type="button"
+            onClick={() => openTelegram(() => setTelegramFallback(true))}
+            className="mt-3 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full border border-border px-4 text-sm font-semibold transition hover:border-neon-pink/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neon-pink"
+          >
+            <Send className="h-4 w-4" aria-hidden="true" />Falar comigo no Telegram
+          </button>
+          {telegramFallback && (
+            <button
+              type="button"
+              onClick={openTelegramWeb}
+              className="mt-2 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full border border-border px-4 text-xs font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neon-pink"
+            >
+              <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />Abrir Telegram pelo navegador
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={() => void copyHandle()}
+            className="mt-3 inline-flex min-h-10 items-center gap-2 rounded-md px-2 text-xs text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neon-pink"
+          >
+            <Copy className="h-3.5 w-3.5" aria-hidden="true" />Copiar {TELEGRAM_HANDLE}
+          </button>
+        </section>
+      </div>
+
+      {showSticky && vipPlan && (
+        <div className="fdr-rise fixed inset-x-0 bottom-0 z-40" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
+          <div className="mx-auto max-w-md bg-gradient-to-t from-background via-background/95 to-transparent px-4 pb-3 pt-8">
+            <NeonButton type="button" onClick={() => handlePlan(vipPlan)} className="w-full py-4 text-base">
+              Quero meu acesso VIP
+            </NeonButton>
+          </div>
+        </div>
       )}
 
-      {/* ============ TOAST ============ */}
       {toast && (
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="glass fixed bottom-24 left-1/2 z-50 w-[90%] max-w-sm -translate-x-1/2 rounded-2xl px-4 py-3 text-center text-sm font-semibold shadow-xl"
-        >
-          <Check className="mr-1 inline h-4 w-4 text-emerald-400" />
-          {toast}
-        </motion.div>
+        <div role="status" aria-live="polite" className="fixed bottom-24 left-1/2 z-50 w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 rounded-xl border border-border bg-card px-4 py-3 text-center text-sm shadow-xl">
+          <Check className="mr-1 inline h-4 w-4 text-emerald-400" aria-hidden="true" />{toast}
+        </div>
       )}
     </main>
   );
