@@ -3,10 +3,11 @@
  *  CONFIGURAÇÃO DO CHECKOUT PIX
  * ============================================================
  *
- *  API_URL -> endereço do servidor que gera o PIX.
- *  Troque pelo endereço real do seu servidor.
+ *  O PIX é gerado pelo próprio site (rotas /api/public/pix/*),
+ *  por isso não é preciso servidor externo.
  */
-export const API_URL = "https://SEU-SERVIDOR.onrender.com";
+export const CREATE_PIX_URL = "/api/public/pix/create";
+export const CHECK_PIX_URL = "/api/public/pix/status";
 
 export const CHECKOUT_UNAVAILABLE_MESSAGE =
   "Esse acesso está sendo atualizado. Tente novamente em instantes ❤️";
