@@ -35,6 +35,7 @@ function Home() {
   const [toast, setToast] = useState<string | null>(null);
   const [telegramFallback, setTelegramFallback] = useState(false);
   const [showSticky, setShowSticky] = useState(true);
+  const [checkoutPlan, setCheckoutPlan] = useState<Plan | null>(null);
   const plansRef = useRef<HTMLElement | null>(null);
 
   // Plano em destaque (VIP). Não depende mais da posição no array.
@@ -60,10 +61,9 @@ function Home() {
   const showToast = (message: string) => setToast(message);
 
   const handlePlan = (plan: Plan) => {
-    trackEvent(plan.id === "monthly" ? "monthly_plan_click" : "lifetime_plan_click");
-    if (!plan.url) { showToast(CHECKOUT_UNAVAILABLE_MESSAGE); return; }
+    trackEvent(plan.id === "basic" ? "basic_plan_click" : "vip_plan_click");
     trackEvent("checkout_open", { plan: plan.id });
-    window.location.href = withUtms(plan.url);
+    setCheckoutPlan(plan);
   };
 
   const copyHandle = async () => {
